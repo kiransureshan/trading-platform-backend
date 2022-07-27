@@ -28,8 +28,7 @@ public class Watchlist {
     }
 
     public HashSet<String> getTickers() {
-        HashSet<String> tickersClone= (HashSet)this.tickers.clone();
-        return tickersClone;
+        return new HashSet<String>(this.tickers);
     }
 
     public void addTicker(String newTicker){

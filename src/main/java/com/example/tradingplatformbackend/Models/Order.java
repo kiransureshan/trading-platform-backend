@@ -14,12 +14,15 @@ public class Order {
 
     private final Long time;
 
-    public Order(String ticker, Integer numShares, TradeSide side){
+    private final double cost;
+
+    public Order(String ticker, Integer numShares, TradeSide side, double cost){
         this.id = UUID.randomUUID();
         this.ticker = ticker;
         this.numShares = numShares;
         this.tradeSide = side;
         this.time = System.currentTimeMillis();
+        this.cost = cost;
     }
 
     public UUID getId() {
@@ -40,5 +43,9 @@ public class Order {
 
     public Long getTime() {
         return time;
+    }
+
+    public double getCost(){
+        return cost;
     }
 }

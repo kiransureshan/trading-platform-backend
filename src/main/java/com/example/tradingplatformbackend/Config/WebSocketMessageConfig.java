@@ -14,12 +14,15 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
     public void registerStompEndpoints(final StompEndpointRegistry registry){
         // endpoint to start handshake for new socket connection with server
         registry.addEndpoint("/chat-example").withSockJS();
+        registry.addEndpoint("/trading-platform-stream").withSockJS();
     }
 
     @Override
     public void configureMessageBroker(final MessageBrokerRegistry registry){
-        // prefix for making calls once the socket is established
+        // prefix for clients to make calls once the socket is established
         registry.setApplicationDestinationPrefixes("/app");
+
         registry.enableSimpleBroker("/topic");
+        registry.enableSimpleBroker("/stream");
     }
 }

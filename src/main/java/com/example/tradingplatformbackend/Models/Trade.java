@@ -48,19 +48,15 @@ public class Trade {
         return numShares;
     }
 
-    public void modifyShares(Integer numShares, double cost) {
-        // calculate new weighted average cost
-        int newShareCount = getNumShares() + numShares;
-        float newSharesWeight = numShares/newShareCount;
-        setAverageCost(getAverageCost()*(1-newSharesWeight) + cost*newSharesWeight);
-        this.numShares = newShareCount;
+    public void setNumShares(Integer shares){
+        this.numShares = shares;
     }
 
     public double getAverageCost() {
         return averageCost;
     }
 
-    private void setAverageCost(double newCost){
+    public void setAverageCost(double newCost){
         this.averageCost = newCost;
     }
 }
