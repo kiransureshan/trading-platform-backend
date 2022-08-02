@@ -1,6 +1,7 @@
 'use strict'
 
 let stompClient;
+let stompClient2;
 let username;
 
 const connect = (event) => {
@@ -14,15 +15,53 @@ const connect = (event) => {
         chatPage.classList.remove('hide')
 
         // create new socket connection
-        const socket = new SockJS('/chat-example')
+        const socket = new SockJS('/chat-example');
+        const socket2 = new SockJS("/trading-platform-stream");
         stompClient = Stomp.over(socket)
+        stompClient2 = Stomp.over(socket2);
         stompClient.connect({}, onConnected, onError)
+        stompClient2.connect({},onConnectStream, onError);
     }
     event.preventDefault()
 }
 
+
+
+
+
+const onConnectStream = () => {
+    console.log("Connected to Kiran's Socket");
+}
+
+
+const testEndpoint = () => {
+    var id2 = "testId"
+    stompClient2.subscribe('/stream/candleData', receiveTest, {id : id2});
+    stompClient2.send("/app/candleData/start", {},"BTCUSD");
+}
+
+const receiveTest = (payload) => {
+    const message = JSON.parse(payload.body);
+
+    const div = document.querySelector("#messageBodyDump");
+    const newEl = document.createElement("div");
+    console.log(message);
+    newEl.innerText = message.askPrice;
+    div.appendChild(newEl);
+}
+
+
+
+
+
+
+
+
+
+
+
 const onConnected = () => {
-    stompClient.subscribe('/topic/public', onMessageReceived)
+    stompClient.subscribe('/stream/public', onMessageReceived)
     stompClient.send("/app/chat.newUser",
         {},
         JSON.stringify({sender: username, type: 'CONNECT'})
@@ -53,6 +92,7 @@ const sendMessage = (event) => {
     }
     event.preventDefault();
 }
+
 
 
 const onMessageReceived = (payload) => {
@@ -125,3 +165,6 @@ const loginForm = document.querySelector('#login-form')
 loginForm.addEventListener('submit', connect, true)
 const messageControls = document.querySelector('#message-controls')
 messageControls.addEventListener('submit', sendMessage, true)
+
+const testEndpointButton = document.querySelector("#testEndpoint");
+testEndpointButton.addEventListener("click",testEndpoint,true);

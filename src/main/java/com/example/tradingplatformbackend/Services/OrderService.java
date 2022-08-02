@@ -23,9 +23,10 @@ public class OrderService {
         return repo.getAll();
     }
 
-    public void newOrder(String ticker, Integer numShares, TradeSide side, double cost){
+    public Order newOrder(String ticker, Integer numShares, TradeSide side, double cost){
         Order order = new Order( ticker,  numShares, side,cost);
         repo.add(order);
+        return order;
     }
 
 

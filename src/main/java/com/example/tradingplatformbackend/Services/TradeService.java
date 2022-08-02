@@ -19,17 +19,19 @@ public class TradeService {
         this.repo = repo;
     }
 
-    public void newTrade(Order order){
+    public Trade newTrade(Order order){
         List<Trade> trades = repo.getAll().stream().filter(tr -> Objects.equals(tr.getTicker(), order.getTicker())).toList();
-        Trade trade;
         if (trades.size() == 0){
-            return;
+            Trade newTrade = new Trade(order.getTicker(),order.getNumShares(),order.getCost());
+            repo.add(newTrade);
+            return newTrade;
         }
-        trade = trades.get(0);
+        Trade trade = trades.get(0);
         modifyAvgCost(order.getNumShares(), order.getCost(), trade);
         if(trade.getNumShares() == 0){
             repo.deleteById(trade.getId());
         }
+        return trade;
     }
 
     public List<Trade> getOpenTrades(){

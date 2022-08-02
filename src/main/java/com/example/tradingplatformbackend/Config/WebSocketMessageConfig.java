@@ -9,7 +9,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer {
-
     @Override
     public void registerStompEndpoints(final StompEndpointRegistry registry){
         // endpoint to start handshake for new socket connection with server
@@ -19,10 +18,9 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void configureMessageBroker(final MessageBrokerRegistry registry){
-        // prefix for clients to make calls once the socket is established
+        // prefix for controller endpoints for the client to hit
         registry.setApplicationDestinationPrefixes("/app");
-
-        registry.enableSimpleBroker("/topic");
+        // where the messages get sent -> the controller's @SendTo
         registry.enableSimpleBroker("/stream");
     }
 }

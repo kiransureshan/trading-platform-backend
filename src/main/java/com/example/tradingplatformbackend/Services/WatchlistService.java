@@ -28,7 +28,7 @@ public class WatchlistService {
     }
 
     public List<Watchlist> getWatchlists(){
-        return new ArrayList<>();
+        return repo.getAll();
     }
 
 

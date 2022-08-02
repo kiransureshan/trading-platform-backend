@@ -7,8 +7,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-
-
 import java.util.List;
 import java.util.UUID;
 
@@ -22,26 +20,29 @@ public class WatchlistController {
     }
 
     @MessageMapping("/watchlist/add")
-    @SendTo("/stream")
     public void addWatchlist(@Payload String name){
         watchlistService.addWatchlist(name);
     }
 
     @MessageMapping("/watchlist/delete")
-    @SendTo("/stream")
     public void deleteWatchlist(@Payload UUID id){
         watchlistService.deleteWatchlist(id);
     }
 
     @MessageMapping("/watchlist/addTicker")
-    @SendTo("/stream")
     public void addTickerToWatchlist(@Payload String ticker, @Payload UUID watchlistId){
         watchlistService.addTickerToWatchlist(ticker, watchlistId);
     }
 
     @MessageMapping("/watchlist/getAll")
-    @SendTo("/stream")
+    @SendTo("/stream/watchlists/getAll")
     public List<Watchlist> getWatchlists(){
         return watchlistService.getWatchlists();
+    }
+
+    @MessageMapping("/watchlist/testEndpoint")
+    @SendTo("/stream/test")
+    public String testEndpoint(){
+        return "yeet we received your request";
     }
 }
