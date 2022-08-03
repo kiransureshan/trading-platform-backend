@@ -36,7 +36,7 @@ const onConnectStream = () => {
 
 const testEndpoint = () => {
     var id2 = "testId"
-    stompClient2.subscribe('/stream/candleData', receiveTest, {id : id2});
+    stompClient2.subscribe('/stream/newCandleBar', receiveTest, {id : id2});
     stompClient2.send("/app/candleData/start", {},"BTCUSD");
 }
 
@@ -45,8 +45,7 @@ const receiveTest = (payload) => {
 
     const div = document.querySelector("#messageBodyDump");
     const newEl = document.createElement("div");
-    console.log(message);
-    newEl.innerText = message.askPrice;
+    newEl.innerText = message.open;
     div.appendChild(newEl);
 }
 

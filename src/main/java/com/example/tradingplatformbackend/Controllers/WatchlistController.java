@@ -40,9 +40,4 @@ public class WatchlistController {
         return watchlistService.getWatchlists();
     }
 
-    @MessageMapping("/watchlist/testEndpoint")
-    @SendTo("/stream/test")
-    public String testEndpoint(){
-        return "yeet we received your request";
-    }
 }
