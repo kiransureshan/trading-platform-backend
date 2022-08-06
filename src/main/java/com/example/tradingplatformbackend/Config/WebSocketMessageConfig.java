@@ -12,8 +12,8 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
     @Override
     public void registerStompEndpoints(final StompEndpointRegistry registry){
         // endpoint to start handshake for new socket connection with server
-        registry.addEndpoint("/chat-example").withSockJS();
-        registry.addEndpoint("/trading-platform-stream").withSockJS();
+        registry.addEndpoint("/chat-example").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/trading-platform-stream").setAllowedOrigins("*").withSockJS();
     }
 
     @Override
