@@ -20,7 +20,7 @@ public class TradeService {
     }
 
     public Trade newTrade(Order order){
-        List<Trade> trades = repo.getAll().stream().filter(tr -> Objects.equals(tr.getTicker(), order.getTicker())).toList();
+        List<Trade> trades = repo.getAll().stream().filter(tr -> Objects.equals(tr.getTicker(), order.getTicker())).collect(Collectors.toList());
         if (trades.size() == 0){
             Trade newTrade = new Trade(order.getTicker(),order.getNumShares(),order.getCost());
             repo.add(newTrade);

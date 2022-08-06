@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Component
 public class MockTradeRepo implements Repository<Trade> {
-    private final List<Trade> openTrades = new ArrayList<>(){
+    private final List<Trade> openTrades = new ArrayList(){
         {
             add(new Trade("AAPL",100,100));
             add(new Trade("TSLA",50,2000));

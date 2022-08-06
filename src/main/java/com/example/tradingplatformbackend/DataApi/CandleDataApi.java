@@ -129,20 +129,26 @@ public class CandleDataApi implements Runnable{
 	}
 
 	private BarTimePeriod mapTimeframe(CandleTimeFrame tf){
-		return switch (tf) {
-			case m1 -> BarTimePeriod.MINUTE;
-			case h1 -> BarTimePeriod.HOUR;
-			default -> BarTimePeriod.DAY;
-		};
+		switch (tf) {
+			case m1:
+				return BarTimePeriod.MINUTE;
+			case h1:
+				return BarTimePeriod.HOUR;
+			default:
+				return BarTimePeriod.DAY;
+		}
 	}
 
 	private ZonedDateTime getBarHistoryStartTime(CandleTimeFrame tf){
 		ZonedDateTime now = ZonedDateTime.now();
-		return switch (tf) {
-			case m1 -> now.minusMinutes(numBarsHistory);
-			case h1 -> now.minusHours(numBarsHistory);
-			default -> now.minusDays(numBarsHistory);
-		};
+		switch (tf) {
+			case m1:
+				return now.minusMinutes(numBarsHistory);
+			case h1:
+				return now.minusHours(numBarsHistory);
+			default:
+				return now.minusDays(numBarsHistory);
+		}
 
 	}
 }

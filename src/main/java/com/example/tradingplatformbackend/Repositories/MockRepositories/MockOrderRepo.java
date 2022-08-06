@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 public class MockOrderRepo implements Repository<Order> {
-    private final List<Order> orders = new ArrayList<>(){
+    private final List<Order> orders = new ArrayList(){
         {
             add(new Order("AAPL",100, TradeSide.BUY,100));
             add(new Order("TSLA",50,TradeSide.BUY,2000));
