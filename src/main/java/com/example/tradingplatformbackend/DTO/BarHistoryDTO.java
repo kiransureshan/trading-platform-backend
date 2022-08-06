@@ -1,7 +1,7 @@
 package com.example.tradingplatformbackend.DTO;
 
+
 import com.example.tradingplatformbackend.Models.CandleTimeFrame;
-import org.checkerframework.checker.units.qual.C;
 
 public class BarHistoryDTO {
     private String ticker;
