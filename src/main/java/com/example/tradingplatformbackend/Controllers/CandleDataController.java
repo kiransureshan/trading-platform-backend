@@ -1,6 +1,7 @@
 package com.example.tradingplatformbackend.Controllers;
 
 
+import com.example.tradingplatformbackend.DTO.BarHistoryDTO;
 import com.example.tradingplatformbackend.DataApi.CandleDataApi;
 import com.example.tradingplatformbackend.Models.CandleBarData;
 import com.example.tradingplatformbackend.Models.CandleTimeFrame;
@@ -35,9 +36,8 @@ public class CandleDataController {
 
     @MessageMapping("/candleData/start")
     public void connectToDataStream(@Payload final String ticker){
-        //TODO: change the api param to ticker from default
         if(!isApiStarted()){
-            api = new CandleDataApi( sendingOperations, defaultTicker);
+            api = new CandleDataApi( sendingOperations, ticker);
             Thread test = new Thread(api);
             test.start();
             apiStarted = true;
@@ -52,12 +52,16 @@ public class CandleDataController {
     }
 
     @MessageMapping("/candleData/barHistory")
-    public List<CandleBarData> getBarHistory(String ticker, CandleTimeFrame tf){
+    @SendTo("/stream/candleData/barHistory")
+    public List<CandleBarData> getBarHistory(@Payload BarHistoryDTO dto){
         if(!isApiStarted()){
-            connectToDataStream(ticker);
+            connectToDataStream(dto.getTicker());
         }
+        // fetch data from api and return to client
         List<CandleBarData> result = new ArrayList<>();
-        api.getBarHistory(ticker, tf).forEach(bar -> result.add(new CandleBarData(bar,tf)));
+        api.getBarHistory(dto.getTicker(), dto.getTf()).forEach(bar -> {
+            result.add(new CandleBarData(bar,dto.getTf()));
+        });
         return result;
     }
 

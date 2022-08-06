@@ -36,18 +36,23 @@ const onConnectStream = () => {
 
 const testEndpoint = () => {
     var id2 = "testId"
-    stompClient2.subscribe('/stream/newCandleBar', receiveTest, {id : id2});
-    stompClient2.send("/app/candleData/start", {},"BTCUSD");
+    stompClient2.subscribe('/stream/barHistory', receiveTest, {id : id2});
+    const body = {
+        ticker: 'BTCUSD',
+        tf: 'h1'
+    }
+    stompClient2.send("/app/candleData/barHistory", {},JSON.stringify(body));
 }
 
 const receiveTest = (payload) => {
     const message = JSON.parse(payload.body);
-
-    const div = document.querySelector("#messageBodyDump");
-    const newEl = document.createElement("div");
-    newEl.innerText = message.open;
-    div.appendChild(newEl);
+    console.log(message);
+    // const div = document.querySelector("#messageBodyDump");
+    // const newEl = document.createElement("div");
+    // newEl.innerText = message.open;
+    // div.appendChild(newEl);
 }
+
 
 
 

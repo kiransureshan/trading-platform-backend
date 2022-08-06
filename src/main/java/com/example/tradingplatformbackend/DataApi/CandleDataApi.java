@@ -28,8 +28,9 @@ public class CandleDataApi implements Runnable{
     private final HashSet<String> subscribedTickers;
 	private String primaryStream;
 	private final SimpMessageSendingOperations so;
-
 	private int quoteThrottle;
+
+	private int numBarsHistory;
 
     public CandleDataApi(SimpMessageSendingOperations so, String primaryTicker){
         this.api = new AlpacaAPI();
@@ -38,6 +39,7 @@ public class CandleDataApi implements Runnable{
 		this.subscribedTickers = new HashSet<>();
 		this.quoteThrottle = 0;
 		subscribedTickers.add(primaryStream);
+		this.numBarsHistory = 50;
     }
 
 	@Override
@@ -45,18 +47,20 @@ public class CandleDataApi implements Runnable{
 		try{
 			// tell listener what to do with stream
 			MarketDataListener marketDataListener = (messageType, message) ->{
-				if(messageType == MarketDataMessageType.QUOTE && quoteThrottle != 10){
-					quoteThrottle++;
+				if(messageType == MarketDataMessageType.QUOTE && quoteThrottle == 10){
+					quoteThrottle = 0;
 					so.convertAndSend("/stream/candleData",new StreamData(message.toString()));
 				} else if (messageType == MarketDataMessageType.BAR){
 					so.convertAndSend("/stream/newCandleBar",new CandleBarData(message.toString()));
 				}
 
 				// update quote throttler
-				if (quoteThrottle == 10) {
-					quoteThrottle = 0;
+				if (quoteThrottle != 10) {
+					quoteThrottle++;
 				}
+
 				System.out.println(message.toString());
+
 			};
 			api.cryptoMarketDataStreaming().setListener(marketDataListener);
 			// subscribe to messages from socket
@@ -91,8 +95,6 @@ public class CandleDataApi implements Runnable{
 		}
     }
 
-//	net.jacobpeterson.alpaca.model.endpoint.marketdata.stock.realtime.bar.StockBarMessage@3168c7e9[messageType=b,symbol=AAPL,open=160.8,high=160.91,low=160.75,close=160.885,timestamp=2022-08-02T18:48Z,tradeCount=28,vwap=160.838915,volume=2985]
-
     public void addTickersToStream(List<String> tickers){
         subscribedTickers.addAll(tickers);
     }
@@ -105,20 +107,24 @@ public class CandleDataApi implements Runnable{
 		this.primaryStream = newTicker;
 	}
 
-	public List<Bar> getBarHistory(String ticker, CandleTimeFrame tf){
+	public List<CryptoBar> getBarHistory(String ticker, CandleTimeFrame tf){
 		try{
 			CryptoBarsResponse barsResponse = api.cryptoMarketData().getBars(
 					ticker,
 					Arrays.asList(Exchange.COINBASE),
-					ZonedDateTime.of(2021, 12, 18, 0, 0, 0, 0, ZoneId.of("America/New_York")),
-					50,
+					getBarHistoryStartTime(tf),
+					numBarsHistory,
 					null,
-					1,
+					4,
 					mapTimeframe(tf));
-			return new ArrayList<>(barsResponse.getBars());
+
+
+			return barsResponse.getBars();
+
 		} catch (Exception e){
 			e.printStackTrace();
 		}
+
 		return new ArrayList<>();
 	}
 
@@ -128,5 +134,15 @@ public class CandleDataApi implements Runnable{
 			case h1 -> BarTimePeriod.HOUR;
 			default -> BarTimePeriod.DAY;
 		};
+	}
+
+	private ZonedDateTime getBarHistoryStartTime(CandleTimeFrame tf){
+		ZonedDateTime now = ZonedDateTime.now();
+		return switch (tf) {
+			case m1 -> now.minusMinutes(numBarsHistory);
+			case h1 -> now.minusHours(numBarsHistory);
+			default -> now.minusDays(numBarsHistory);
+		};
+
 	}
 }
