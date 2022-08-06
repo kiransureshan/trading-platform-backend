@@ -36,7 +36,7 @@ const onConnectStream = () => {
 
 const testEndpoint = () => {
     var id2 = "testId"
-    stompClient2.subscribe('/stream/barHistory', receiveTest, {id : id2});
+    stompClient2.subscribe('/stream/candleData/barHistory', receiveTest, {id : id2});
     const body = {
         ticker: 'BTCUSD',
         tf: 'h1'
