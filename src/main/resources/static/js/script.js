@@ -47,10 +47,6 @@ const testEndpoint = () => {
 const receiveTest = (payload) => {
     const message = JSON.parse(payload.body);
     console.log(message);
-    // const div = document.querySelector("#messageBodyDump");
-    // const newEl = document.createElement("div");
-    // newEl.innerText = message.open;
-    // div.appendChild(newEl);
 }
 
 

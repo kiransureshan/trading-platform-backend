@@ -29,8 +29,7 @@ public class CandleDataApi implements Runnable{
 	private String primaryStream;
 	private final SimpMessageSendingOperations so;
 	private int quoteThrottle;
-
-	private int numBarsHistory;
+	private final int numBarsHistory;
 
     public CandleDataApi(SimpMessageSendingOperations so, String primaryTicker){
         this.api = new AlpacaAPI();
@@ -45,6 +44,9 @@ public class CandleDataApi implements Runnable{
 	@Override
 	public void run() {
 		try{
+			if(api.cryptoMarketDataStreaming().isConnected()){
+				return;
+			}
 			// tell listener what to do with stream
 			MarketDataListener marketDataListener = (messageType, message) ->{
 				if(messageType == MarketDataMessageType.QUOTE && quoteThrottle == 10){
@@ -58,9 +60,6 @@ public class CandleDataApi implements Runnable{
 				if (quoteThrottle != 10) {
 					quoteThrottle++;
 				}
-
-				System.out.println(message.toString());
-
 			};
 			api.cryptoMarketDataStreaming().setListener(marketDataListener);
 			// subscribe to messages from socket
@@ -69,15 +68,7 @@ public class CandleDataApi implements Runnable{
 					MarketDataMessageType.SUBSCRIPTION,
 					MarketDataMessageType.ERROR);
 
-			connectToAlpaca();
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-	}
 
-    private void connectToAlpaca(){
-		try{
 			// Connect the websocket and confirm authentication
 			api.cryptoMarketDataStreaming().connect();
 			api.cryptoMarketDataStreaming().waitForAuthorization(5, TimeUnit.SECONDS);
@@ -93,7 +84,7 @@ public class CandleDataApi implements Runnable{
 		} catch (Exception e){
 			e.printStackTrace();
 		}
-    }
+	}
 
     public void addTickersToStream(List<String> tickers){
         subscribedTickers.addAll(tickers);
@@ -109,22 +100,21 @@ public class CandleDataApi implements Runnable{
 
 	public List<CryptoBar> getBarHistory(String ticker, CandleTimeFrame tf){
 		try{
-			CryptoBarsResponse barsResponse = api.cryptoMarketData().getBars(
-					ticker,
-					Arrays.asList(Exchange.COINBASE),
-					getBarHistoryStartTime(tf),
-					numBarsHistory,
-					null,
-					4,
-					mapTimeframe(tf));
+			if(api.cryptoMarketDataStreaming().isConnected()){
+				CryptoBarsResponse barsResponse = api.cryptoMarketData().getBars(
+						ticker,
+						Arrays.asList(Exchange.COINBASE),
+						getBarHistoryStartTime(tf),
+						numBarsHistory,
+						null,
+						4,
+						mapTimeframe(tf));
 
-
-			return barsResponse.getBars();
-
+				return barsResponse.getBars();
+			}
 		} catch (Exception e){
 			e.printStackTrace();
 		}
-
 		return new ArrayList<>();
 	}
 
