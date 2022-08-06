@@ -14,7 +14,9 @@
 	<name>trading-platform-backend</name>
 	<description>trading-platform-backend</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>8</java.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>
