@@ -30,17 +30,17 @@ public class CandleBarData {
                 message.indexOf(",",openStart)));
 
         int highStart = message.lastIndexOf("high=") + 5;
-        this.open = Double.parseDouble(message.substring(
+        this.high = Double.parseDouble(message.substring(
                 highStart,
                 message.indexOf(",",highStart)));
 
         int lowStart = message.lastIndexOf("low=") + 4;
-        this.open = Double.parseDouble(message.substring(
+        this.low = Double.parseDouble(message.substring(
                 lowStart,
                 message.indexOf(",",lowStart)));
 
         int closeStart = message.lastIndexOf("close=") + 6;
-        this.open = Double.parseDouble(message.substring(
+        this.close = Double.parseDouble(message.substring(
                 closeStart,
                 message.indexOf(",",closeStart)));
     }

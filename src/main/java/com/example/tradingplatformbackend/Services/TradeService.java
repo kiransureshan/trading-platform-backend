@@ -3,6 +3,7 @@ package com.example.tradingplatformbackend.Services;
 import com.example.tradingplatformbackend.Models.Order;
 import com.example.tradingplatformbackend.Models.Trade;
 import com.example.tradingplatformbackend.Repositories.Repository;
+import com.example.tradingplatformbackend.Repositories.TradeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,18 +13,18 @@ import java.util.stream.Collectors;
 
 @Service
 public class TradeService {
-    private final Repository<Trade> repo;
+    private final TradeRepo repo;
 
     @Autowired
-    public TradeService(Repository<Trade> repo){
+    public TradeService(TradeRepo repo){
         this.repo = repo;
     }
 
     public Trade newTrade(Order order){
-        List<Trade> trades = repo.getAll().stream().filter(tr -> Objects.equals(tr.getTicker(), order.getTicker())).collect(Collectors.toList());
+        List<Trade> trades = repo.findAll().stream().filter(tr -> Objects.equals(tr.getTicker(), order.getTicker())).collect(Collectors.toList());
         if (trades.size() == 0){
             Trade newTrade = new Trade(order.getTicker(),order.getNumShares(),order.getCost());
-            repo.add(newTrade);
+            repo.save(newTrade);
             return newTrade;
         }
         Trade trade = trades.get(0);
@@ -35,7 +36,7 @@ public class TradeService {
     }
 
     public List<Trade> getOpenTrades(){
-        return repo.getAll();
+        return repo.findAll();
     }
 
     private void modifyAvgCost(Integer numShares, double cost, Trade trade) {

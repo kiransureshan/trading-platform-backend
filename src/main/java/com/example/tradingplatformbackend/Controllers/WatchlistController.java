@@ -1,5 +1,6 @@
 package com.example.tradingplatformbackend.Controllers;
 
+import com.example.tradingplatformbackend.DTO.AddTickerDTO;
 import com.example.tradingplatformbackend.Models.Watchlist;
 import com.example.tradingplatformbackend.Services.WatchlistService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -20,8 +22,9 @@ public class WatchlistController {
     }
 
     @MessageMapping("/watchlist/add")
-    public void addWatchlist(@Payload String name){
-        watchlistService.addWatchlist(name);
+    @SendTo("/stream/watchlist/updatedWatchlist")
+    public Watchlist addWatchlist(@Payload String name){
+        return watchlistService.addWatchlist(name);
     }
 
     @MessageMapping("/watchlist/delete")
@@ -30,14 +33,20 @@ public class WatchlistController {
     }
 
     @MessageMapping("/watchlist/addTicker")
-    public void addTickerToWatchlist(@Payload String ticker, @Payload UUID watchlistId){
-        watchlistService.addTickerToWatchlist(ticker, watchlistId);
+    @SendTo("/stream/watchlist/updatedWatchlist")
+    public Watchlist addTickerToWatchlist(@Payload AddTickerDTO dto){
+        watchlistService.addTickerToWatchlist(dto.ticker, dto.wlId);
+        Watchlist tmp = watchlistService.getById(dto.wlId);
+        return tmp;
     }
 
     @MessageMapping("/watchlist/getAll")
-    @SendTo("/stream/watchlists/getAll")
+    @SendTo("/stream/watchlist/getAll")
     public List<Watchlist> getWatchlists(){
-        return watchlistService.getWatchlists();
+        List<Watchlist> res = watchlistService.getWatchlists();
+        for (Watchlist wl : res){
+            System.out.println(wl);
+        }
+        return res;
     }
-
 }

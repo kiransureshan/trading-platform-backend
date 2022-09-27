@@ -38,8 +38,8 @@ const testEndpoint = () => {
     var id2 = "testId"
     stompClient2.subscribe('/stream/candleData/barHistory', receiveTest, {id : id2});
     const body = {
-        ticker: 'BTCUSD',
-        tf: 'h1'
+        ticker: 'AAPL',
+        tf: 'd1'
     }
     stompClient2.send("/app/candleData/barHistory", {},JSON.stringify(body));
 }

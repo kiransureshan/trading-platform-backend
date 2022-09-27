@@ -4,28 +4,22 @@ import com.example.tradingplatformbackend.Models.CandleBarData;
 import com.example.tradingplatformbackend.Models.CandleTimeFrame;
 import com.example.tradingplatformbackend.Models.StreamData;
 import net.jacobpeterson.alpaca.AlpacaAPI;
-import net.jacobpeterson.alpaca.model.endpoint.marketdata.common.historical.bar.Bar;
 import net.jacobpeterson.alpaca.model.endpoint.marketdata.common.historical.bar.enums.BarTimePeriod;
 import net.jacobpeterson.alpaca.model.endpoint.marketdata.common.realtime.enums.MarketDataMessageType;
-import net.jacobpeterson.alpaca.model.endpoint.marketdata.crypto.common.enums.Exchange;
-import net.jacobpeterson.alpaca.model.endpoint.marketdata.crypto.historical.bar.CryptoBar;
-import net.jacobpeterson.alpaca.model.endpoint.marketdata.crypto.historical.bar.CryptoBarsResponse;
+import net.jacobpeterson.alpaca.model.endpoint.marketdata.stock.historical.bar.StockBar;
+import net.jacobpeterson.alpaca.model.endpoint.marketdata.stock.historical.bar.StockBarsResponse;
+import net.jacobpeterson.alpaca.model.endpoint.marketdata.stock.historical.bar.enums.BarAdjustment;
+import net.jacobpeterson.alpaca.model.endpoint.marketdata.stock.historical.bar.enums.BarFeed;
 import net.jacobpeterson.alpaca.websocket.marketdata.MarketDataListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CandleDataApi implements Runnable{
     private final AlpacaAPI api;
-    private final HashSet<String> subscribedTickers;
+    private final HashMap<String,Integer> subscribedTickers;
 	private String primaryStream;
 	private final SimpMessageSendingOperations so;
 	private int quoteThrottle;
@@ -35,80 +29,105 @@ public class CandleDataApi implements Runnable{
         this.api = new AlpacaAPI();
 		this.so = so;
 		this.primaryStream = primaryTicker;
-		this.subscribedTickers = new HashSet<>();
+		this.subscribedTickers = new HashMap<>();
 		this.quoteThrottle = 0;
-		subscribedTickers.add(primaryStream);
+		subscribedTickers.put(primaryStream,1);
 		this.numBarsHistory = 50;
     }
 
 	@Override
 	public void run() {
 		try{
-			if(api.cryptoMarketDataStreaming().isConnected()){
+			if(api.stockMarketDataStreaming().isConnected()){
 				return;
 			}
 			// tell listener what to do with stream
 			MarketDataListener marketDataListener = (messageType, message) ->{
-				if(messageType == MarketDataMessageType.QUOTE && quoteThrottle == 10){
+				if(messageType == MarketDataMessageType.QUOTE && quoteThrottle == 50){
 					quoteThrottle = 0;
 					so.convertAndSend("/stream/candleData",new StreamData(message.toString()));
+					System.out.println(message);
 				} else if (messageType == MarketDataMessageType.BAR){
 					so.convertAndSend("/stream/newCandleBar",new CandleBarData(message.toString()));
 				}
 
 				// update quote throttler
-				if (quoteThrottle != 10) {
+				if (quoteThrottle != 50) {
 					quoteThrottle++;
 				}
 			};
-			api.cryptoMarketDataStreaming().setListener(marketDataListener);
+			api.stockMarketDataStreaming().setListener(marketDataListener);
 			// subscribe to messages from socket
-			api.cryptoMarketDataStreaming().subscribeToControl(
+			api.stockMarketDataStreaming().subscribeToControl(
 					MarketDataMessageType.SUCCESS,
 					MarketDataMessageType.SUBSCRIPTION,
 					MarketDataMessageType.ERROR);
 
 
 			// Connect the websocket and confirm authentication
-			api.cryptoMarketDataStreaming().connect();
-			api.cryptoMarketDataStreaming().waitForAuthorization(5, TimeUnit.SECONDS);
-			if (!api.cryptoMarketDataStreaming().isValid()) {
-				System.out.println("Websocket not valid!");
+			api.stockMarketDataStreaming().connect();
+			api.stockMarketDataStreaming().waitForAuthorization(5, TimeUnit.SECONDS);
+
+			if (!api.stockMarketDataStreaming().isValid()) {
+				throw new Exception("Websocket not valid!");
 			} else {
 				// Listen to tickers and all bars via the wildcard operator ('*').
-				api.cryptoMarketDataStreaming().subscribe(
+				api.stockMarketDataStreaming().subscribe(
 						null,
-						Arrays.asList("BTCUSD"),
-						Arrays.asList(this.primaryStream));
+						Arrays.asList(this.primaryStream),
+						Arrays.asList(this.primaryStream)
+				);
 			}
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
 
-    public void addTickersToStream(List<String> tickers){
-        subscribedTickers.addAll(tickers);
-    }
-
-    public void removeTickerFromStream(String ticker){
-        subscribedTickers.remove(ticker);
-    }
-
 	public void changePrimaryStream(String newTicker){
-		this.primaryStream = newTicker;
+		try{
+			if (!subscribedTickers.containsKey(newTicker)){
+				api.stockMarketDataStreaming().subscribe(
+						null,
+						Arrays.asList(newTicker),
+						Arrays.asList(newTicker));
+
+				subscribedTickers.put(newTicker, 1);
+
+				// update the ticker count
+				int oldPrimaryCount = subscribedTickers.get(primaryStream);
+				if (oldPrimaryCount > 1){
+					subscribedTickers.put(primaryStream,oldPrimaryCount - 1);
+				} else{
+					subscribedTickers.remove(primaryStream);
+					api.stockMarketDataStreaming().unsubscribe(
+							null,
+							Arrays.asList(primaryStream),
+							Arrays.asList(primaryStream));
+				}
+				primaryStream = newTicker;
+			}
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
-	public List<CryptoBar> getBarHistory(String ticker, CandleTimeFrame tf){
+	public List<StockBar> getBarHistory(String ticker, CandleTimeFrame tf){
 		try{
-			if(api.cryptoMarketDataStreaming().isConnected()){
-				CryptoBarsResponse barsResponse = api.cryptoMarketData().getBars(
+			if(api.stockMarketDataStreaming().isConnected()){
+				StockBarsResponse barsResponse = api.stockMarketData().getBars(
 						ticker,
-						Arrays.asList(Exchange.COINBASE),
 						getBarHistoryStartTime(tf),
+						ZonedDateTime.now(),
 						numBarsHistory,
 						null,
-						4,
-						mapTimeframe(tf));
+						// number of time period ex. 4,2,1 of hour
+						1,
+						// timeframe to multiply by number of time period above
+						mapTimeframe(tf),
+						BarAdjustment.SPLIT,
+						BarFeed.IEX
+				);
 
 				return barsResponse.getBars();
 			}
@@ -139,6 +158,7 @@ public class CandleDataApi implements Runnable{
 			default:
 				return now.minusDays(numBarsHistory);
 		}
+
 
 	}
 }

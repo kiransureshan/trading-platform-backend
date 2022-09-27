@@ -1,28 +1,63 @@
 package com.example.tradingplatformbackend.Models;
 
+import javax.persistence.*;
 import java.util.UUID;
 
+@Entity(name = "Order")
+@Table(name = "orders")
 public class Order {
+    @Id
+    @GeneratedValue( strategy = GenerationType.AUTO)
+    @Column(
+            name="id",
+            updatable = false
+    )
+    private UUID id;
 
-    private final UUID id;
-
+    @Column(
+            name = "ticker",
+            nullable = false,
+            columnDefinition = "TEXT"
+    )
     private final String ticker;
 
-    private final  Integer numShares;
-
+    @Column(
+            nullable = false,
+            columnDefinition = "INTEGER"
+    )
+    private final Integer numShares;
+    @Column(
+            nullable = false
+    )
     private final TradeSide tradeSide;
-
+    @Column(
+            name = "time",
+            nullable = false,
+            columnDefinition = "DOUBLE PRECISION"
+    )
     private final Long time;
 
+    @Column(
+            name = "cost",
+            nullable = false,
+            columnDefinition = "DOUBLE PRECISION"
+    )
     private final double cost;
 
     public Order(String ticker, Integer numShares, TradeSide side, double cost){
-        this.id = UUID.randomUUID();
         this.ticker = ticker;
         this.numShares = numShares;
         this.tradeSide = side;
         this.time = System.currentTimeMillis();
         this.cost = cost;
+    }
+
+    public Order() {
+        this.ticker = "";
+        this.numShares = 0;
+        this.tradeSide = TradeSide.BUY;
+        this.time = System.currentTimeMillis();
+        this.cost = 0;
     }
 
     public UUID getId() {

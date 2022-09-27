@@ -18,9 +18,6 @@ public class MockWatchlistRepo implements Repository<Watchlist> {
     public MockWatchlistRepo(){
         Watchlist w1 = new Watchlist("Watchlist 1");
         Watchlist w2 = new Watchlist("Watchlist 2");
-        w1.addTicker("AAPL");
-        w1.addTicker("TSLA");
-        w2.addTicker("MSFT");
         watchlists.add(w1);
         watchlists.add(w2);
     }

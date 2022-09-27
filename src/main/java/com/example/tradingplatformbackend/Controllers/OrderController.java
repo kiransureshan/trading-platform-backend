@@ -1,5 +1,6 @@
 package com.example.tradingplatformbackend.Controllers;
 
+import com.example.tradingplatformbackend.DTO.AddOrderDTO;
 import com.example.tradingplatformbackend.Models.Order;
 import com.example.tradingplatformbackend.Models.Trade;
 import com.example.tradingplatformbackend.Services.OrderService;
@@ -24,10 +25,10 @@ public class OrderController {
     }
 
     @MessageMapping("/orders/add")
-    @SendTo("/stream/orders/add")
-    public Trade addOrder(@Payload Order order){
-        Order newOrder = orderService.newOrder(order.getTicker(),order.getNumShares(),order.getTradeSide(),order.getCost());
-        return tradeService.newTrade(order);
+    @SendTo("/stream/orders/orderStream")
+    public Trade addOrder(@Payload AddOrderDTO order){
+        Order newOrder = orderService.newOrder(order.getTicker(),order.getNumShares(),order.getSide(),order.getCost());
+        return tradeService.newTrade(newOrder);
     }
 
 

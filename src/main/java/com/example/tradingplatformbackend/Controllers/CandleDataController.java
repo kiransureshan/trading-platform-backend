@@ -16,32 +16,34 @@ import java.util.List;
 
 @Controller
 public class CandleDataController {
-
-    private final SimpMessageSendingOperations sendingOperations;
-    private CandleDataApi api;
-    private final String defaultTicker;
+    private final CandleDataApi api;
 
     @Autowired
     public CandleDataController(SimpMessageSendingOperations so){
-        this.sendingOperations = so;
-        this.defaultTicker = "BTCUSD";
-        this.api = new CandleDataApi( sendingOperations, defaultTicker);
+        this.api = new CandleDataApi( so, "AAPL");
         Thread alpacaStream = new Thread(api);
         alpacaStream.start();
     }
 
-    public void addTickerToStream(List<String> tickers){
-        api.addTickersToStream(tickers);
-    }
 
     @MessageMapping("/candleData/barHistory")
     @SendTo("/stream/candleData/barHistory")
     public List<CandleBarData> getBarHistory(@Payload BarHistoryDTO dto){
         // fetch data from api and return to client
         List<CandleBarData> result = new ArrayList<>();
-        api.getBarHistory(dto.getTicker(), dto.getTf()).forEach(bar -> {
-            result.add(new CandleBarData(bar,dto.getTf()));
-        });
+        try{
+            api.getBarHistory(dto.getTicker(), dto.getTf()).forEach(bar -> {
+                result.add(new CandleBarData(bar,dto.getTf()));
+            });
+        } catch (Exception e){
+
+        }
+
         return result;
+    }
+
+    @MessageMapping("/candleData/changePrimaryStream")
+    public void changePrimaryStream(@Payload BarHistoryDTO dto){
+        api.changePrimaryStream(dto.getTicker());
     }
 }

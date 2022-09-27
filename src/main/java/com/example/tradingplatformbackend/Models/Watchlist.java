@@ -1,18 +1,25 @@
 package com.example.tradingplatformbackend.Models;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import javax.persistence.*;
 
+@Entity
+@Table(name = "WATCHLISTS")
 public class Watchlist {
-    private final UUID id;
+    @Id
+    @GeneratedValue( strategy = GenerationType.AUTO)
+    @Column
+    private UUID id;
+    @Column
     private String name;
-    private final HashSet<String> tickers;
-
+    @OneToMany(fetch= FetchType.EAGER, cascade=CascadeType.ALL, mappedBy = "watchlist")
+    private Set<WatchlistTicker> tickers;
     public Watchlist(String name){
-        this.id = UUID.randomUUID();
         this.name = name;
-        this.tickers = new HashSet<String>();
+    }
+
+    public Watchlist() {
+
     }
 
     public UUID getId() {
@@ -27,15 +34,11 @@ public class Watchlist {
         this.name = newName;
     }
 
-    public HashSet<String> getTickers() {
-        return new HashSet<String>(this.tickers);
+    public Set<WatchlistTicker> getTickers() {
+        return this.tickers;
     }
 
-    public void addTicker(String newTicker){
-        this.tickers.add(newTicker);
-    }
-
-    public void removeTicker(String ticker){
-        this.tickers.remove(ticker);
+    public void setId(UUID id) {
+        this.id = id;
     }
 }
